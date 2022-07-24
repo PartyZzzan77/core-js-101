@@ -110,34 +110,74 @@ function fromJSON(proto, json) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  markup: '',
+  order: 0,
+  errors: {
+    selectorError: 'Element, id and pseudo-element should not occur more then one time inside the selector',
+    orderError: 'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    this.orderChecker(0);
+    this.markup += value;
+    return this.createSelector('element');
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    this.orderChecker(1);
+    this.markup += `#${value}`;
+    return this.createSelector('id');
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    this.orderChecker(2);
+    this.markup += `.${value}`;
+    return this.createSelector();
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    this.orderChecker(3);
+    this.markup += `[${value}]`;
+    return this.createSelector();
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    this.orderChecker(4);
+    this.markup += `:${value}`;
+    return this.createSelector();
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    this.orderChecker(5);
+    this.markup += `::${value}`;
+    return this.createSelector('pseudoElement');
+  },
+
+  combine(selector1, combinator, selector2) {
+    this.markup = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this.createSelector();
+  },
+
+  stringify() {
+    return this.markup;
+  },
+
+  orderChecker(n) {
+    if (n < this.order) {
+      throw new Error(this.errors.orderError);
+    }
+    this.order = n;
+  },
+
+  createSelector(elem) {
+    const selector = { ...this };
+    selector[elem] = () => { throw new Error(this.errors.selectorError); };
+    this.markup = '';
+    this.order = 0;
+    return selector;
   },
 };
+
 
 module.exports = {
   Rectangle,
