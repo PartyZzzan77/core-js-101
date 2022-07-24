@@ -110,7 +110,7 @@ async function chainPromises(array, action) {
     array.forEach((el) => (
       el
         .then((val) => buffer.push(val))
-        .catch((e) => console.log(e))
+        .catch((e) => { throw new Error(e); })
     ));
     resolve(buffer);
   })
